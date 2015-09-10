@@ -17,7 +17,7 @@ $(document).ready(function(){
     var message = '\
         <div style="display:table;width:100%;height:100%">\
           <div style="display:table-cell;vertical-align:middle;">\
-            <div style="text-align:center; font-size:24px; background-color:#ffff00; cursor:pointer; padding:20px">Your session will expire soon. Click on this box to extend it!</div>\
+            <div style="text-align:center; font-size:24px; background-color:#ffff00; cursor:pointer; padding:20px">Are you still around? You&#39;re about to be logged out. Click on this box to stay logged in!</div>\
           </div>\
         </div>\
     '
@@ -53,7 +53,16 @@ $(document).ready(function(){
                 location.reload(true);
             }
             state = response.state
-            if(response.seconds_until_next_ping <= 30 && $('#hipaa-ping-warning').length == 0){
+            if(response.seconds_until_next_ping <= response.seconds_before_logout_to_display_warning && $('#hipaa-ping-warning').length == 0){
+                // Check if a video was playing and pause it.
+                var was_playing;
+                $("video").each(function(){
+                    if(!$(this).get(0).paused){
+                        was_playing = $(this).get(0)
+                        $(this).get(0).pause();
+                    }
+                });
+
                 var div = $("<div>")
                 div.attr("id", "hipaa-ping-warning")
                 div.css({
@@ -69,7 +78,12 @@ $(document).ready(function(){
                 div.click(function(){
                     $(this).remove();
                     // a click will trigger our body click handler which
-                    // will update last_activity
+                    // will update last_activity, and resume the video if needed.
+                    $("video").each(function(){
+                        if($(this).get(0) == was_playing){
+                            $(this).get(0).play();
+                        }
+                    });
                 })
                 $('body').append(div)
             }
